@@ -1,7 +1,14 @@
 version: '3.8'
 
 services:
-
+  dhcp:
+    container_name: dhcp
+    image: networkboot/dhcpd
+    network_mode: host
+    restart: always
+    volumes:
+      - ./dhcp_data:/data
+    
   web:
     container_name: web
     image: nginx:1.19.10
