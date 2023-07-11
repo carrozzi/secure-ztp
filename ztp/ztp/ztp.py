@@ -93,6 +93,37 @@ def software():
         print(e)
         return Response(status=400)
 
+@app.route('/firmware', methods=['POST'])
+def firmware():
+    status = auth_ztp_host(request)
+    if status != 200:
+        return Response(status=status)
+
+    client_ip = request.headers['X-Forwarded-For']
+    try:
+        fw_version = request.json['fw_version']
+        if config_dict[client_ip]['bypass_firmware']:
+            response = Response(status=204)
+            response.headers['Firmware-Message']='BIOS upgrade bypass enabled'
+            print(f"BIOS upgrade bypass enabled for host: {client_ip}")
+            return response
+        if config_dict[client_ip]['fw_version'] == fw_version:
+            response = Response(status=204)
+            response.headers['Firmware-Message']=f"BIOS already up to date. Version is {fw_version}"
+            print(f"BIOS upgrade not needed. version matches. host: {client_ip} sw ver: {fw_version}")
+            return response
+
+        response = Response(status=301)
+        response.headers['Content-Disposition']=f"attachment; filename={config_dict[client_ip]['fw_file']}"
+        response.headers['X-Accel-Redirect']=f"/ztp_firmware/{config_dict[client_ip]['junos_file']}"
+        return response
+    except KeyError:
+        print("Did you provide all the required json fields?")
+        return Response(status=400)
+    except Exception as e:
+        print(e)
+        return Response(status=400)
+
 
 @app.route('/config', methods=['POST'])
 def config():
