@@ -205,7 +205,7 @@ elif [ $STATUS_CODE -eq 200 ]; then
     logger -t ztp "Config successfully retrieved"
     logger -t ztp "Preparing to load and commit configuration..."
     CLI_RESP=$(cli -c "configure exclusive; load override $JUNOS_TMPDIR/$JUNOS_CONFIG; commit and-quit")
-    CLI_RESP_GREP=$(echo $CLI_RESP | grep 'configuration check succeeds commit complete')
+    CLI_RESP_GREP=$(echo $CLI_RESP | grep 'commit complete')
     if [ $? -ne 0 ]; then
         logger -t ztp "Failed to commit configuration"
         cleanup
