@@ -162,6 +162,11 @@ elif [ $STATUS_CODE -eq 200 ]; then
         cleanup
         exit 1
     fi
+    until [  echo $MYTEST|grep 'complete' eq 0]
+    do 
+        MYTEST=$(cli -c 'request system firmware upgrade jfirmware bios progress')
+        sleep 3
+    done 
     logger -t ztp "Successfully loaded BIOS image ..."
     logger -t ztp "Preparing to reboot to finish BIOS upgrade"
     logger -t ztp "ZTP will start again afterwards to obtain the device config"
