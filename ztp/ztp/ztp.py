@@ -115,7 +115,7 @@ def firmware():
 
         response = Response(status=301)
         response.headers['Content-Disposition']=f"attachment; filename={config_dict[client_ip]['fw_file']}"
-        response.headers['X-Accel-Redirect']=f"/ztp_firmware/{config_dict[client_ip]['junos_file']}"
+        response.headers['X-Accel-Redirect']=f"/ztp_firmware/{config_dict[client_ip]['fw_file']}"
         return response
     except KeyError:
         print("Did you provide all the required json fields?")
@@ -123,7 +123,6 @@ def firmware():
     except Exception as e:
         print(e)
         return Response(status=400)
-
 
 @app.route('/config', methods=['POST'])
 def config():
