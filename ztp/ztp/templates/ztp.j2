@@ -162,10 +162,12 @@ elif [ $STATUS_CODE -eq 200 ]; then
         cleanup
         exit 1
     fi
-    until [  echo $MYTEST|grep 'complete' eq 0]
-    do 
-        MYTEST=$(cli -c 'request system firmware upgrade jfirmware bios progress')
+    CLI_RESP_ERRS=$(echo $MYTEST | grep 'complete')
+    until [ $? -eq 0 ]
+    do         
         sleep 3
+        BIOSTEST=$(cli -c 'request system firmware upgrade jfirmware bios progress')
+        CLI_RESP_ERRS=$(echo $BIOSTEST | grep 'complete')
     done 
     logger -t ztp "Successfully loaded BIOS image ..."
     logger -t ztp "Preparing to reboot to finish BIOS upgrade"
