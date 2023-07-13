@@ -1,0 +1,1 @@
+place firmware images in this directory
