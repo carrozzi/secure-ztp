@@ -10,14 +10,21 @@ app = Flask(__name__)
 # MANDATORY ztp_jsons is mounted to the container
 data_dir = Path("ztp_jsons")
 config_dict = {}
+accept_all = False
+    
 for json_file in data_dir.glob('*.json'):
     with open(json_file) as f:
         config_dict |= json.load(f)
 
+if 'default' in config_dict.keys():
+    print("default config detected...will ZTP any device")
+    accept_all = True
 
 def get_client_ip(request):
     status = None
     client_ip = request.headers['X-Forwarded-For']
+    if accept_all:
+        client_ip = "default"
     if not client_ip:
         print("Client IP could not be determined.")
         status = 400
@@ -61,11 +68,15 @@ def auth_ztp_host(request):
 
 @app.route('/software', methods=['POST'])
 def software():
-    status = auth_ztp_host(request)
+    if accept_all:
+        client_ip = "default"
+        status = 200
+    else:
+        status = auth_ztp_host(request)
+        client_ip = request.headers['X-Forwarded-For']
     if status != 200:
         return Response(status=status)
 
-    client_ip = request.headers['X-Forwarded-For']
     try:
         version = request.json['version']
         if config_dict[client_ip]['bypass_software']:
@@ -95,7 +106,16 @@ def software():
 
 @app.route('/firmware', methods=['POST'])
 def firmware():
-    status = auth_ztp_host(request)
+    if accept_all:
+        client_ip = "default"
+        status = 200
+    else:
+        status = auth_ztp_host(request)
+        client_ip = request.headers['X-Forwarded-For']
+    if accept_all:
+        status = 200
+    else:
+        status = auth_ztp_host(request)
     if status != 200:
         return Response(status=status)
 
@@ -126,11 +146,15 @@ def firmware():
 
 @app.route('/config', methods=['POST'])
 def config():
-    status = auth_ztp_host(request)
+    if accept_all:
+        client_ip = "default"
+        status = 200
+    else:
+        status = auth_ztp_host(request)
+        client_ip = request.headers['X-Forwarded-For']
     if status != 200:
         return Response(status=status)
 
-    client_ip = request.headers['X-Forwarded-For']
     try:
         if config_dict[client_ip]['bypass_config']:
             response = Response(status=204)
@@ -152,15 +176,6 @@ def config():
 
 @app.route('/ztp.sh', methods=['GET'])
 def send_ztp_script():
-    client_ip, err_resp = get_client_ip(request)
-    if err_resp:
-        return Response(status=err_resp)
-    try:
-        hostname = config_dict[client_ip]['hostname']
-    except KeyError:
-        print(f"missing hostname in config data dictionary for ip {client_ip}")
-        return Response(status=400)
-
     # MANDATORY ENV vars need to be passed in to container runtime
     context = {
         'ztp_server': os.getenv('ZTP_SERVER'),
