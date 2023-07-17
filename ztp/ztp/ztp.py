@@ -119,7 +119,6 @@ def firmware():
     if status != 200:
         return Response(status=status)
 
-    client_ip = request.headers['X-Forwarded-For']
     try:
         fw_version = request.json['fw_version']
         if config_dict[client_ip]['bypass_firmware']:
