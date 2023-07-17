@@ -35,7 +35,7 @@ logger -t ztp "Starting ZTP..."
 
 SERIAL=$(echo "show system information | display xml" | cli | grep serial-number | awk -F">" '{print $2}' | awk -F"<" '{print $1}')
 MODEL=$(echo "show system information | display xml" | cli | grep hardware-model | awk -F">" '{print $2}' | awk -F"<" '{print $1}')
-HOSTNAME=$(echo "show system information | display xml" | cli | grep host-name | awk -F">" '{print $2}' | awk -F"<" '{print $1}')
+#HOSTNAME=$(echo "show system information | display xml" | cli | grep host-name | awk -F">" '{print $2}' | awk -F"<" '{print $1}')
 MGMT_INTF=$(cli -c "show dhcp client binding | no-more" | grep -i "bound" | grep -Eo -m 1 "(irb|vme|em0|me0|fxp0)\.[0-9]+")
 MGMT_MAC=$(cli -c "show dhcp client binding | no-more" | grep -i "bound" | grep -E -m 1 "(irb|vme|em0|me0|fxp0)\.[0-9]+"| awk -F" " '{print $2}')
 VERSION=$(echo "show system information | display xml" | cli | grep os-version | awk -F">" '{print $2}' | awk -F"<" '{print $1}')
@@ -53,11 +53,6 @@ if [ -z $MGMT_MAC ]; then
     exit 1
 fi
 
-if [ -z $HOSTNAME ]; then
-    logger -t ztp "Could not retrieve device hostname"
-    cleanup
-    exit 1
-fi
 
 if [ -z $VERSION ]; then
     logger -t ztp "Could not retrieve device software version"
@@ -73,7 +68,6 @@ DATA=$(cat <<EOF
 {
   "serial":"$SERIAL",
   "mac":"$MGMT_MAC",
-  "hostname":"$HOSTNAME",
   "version":"$VERSION",
   "fw_version":"$FW_VER"
 }
