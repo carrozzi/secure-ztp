@@ -189,6 +189,7 @@ tr -d '\r' < http_resp_raw > http_resp || cp -f http_resp_raw http_resp
 if [ $STATUS_CODE -eq 204 ]; then
     MSG=$(grep -i config-message http_resp | awk -F ': ' '{print $2}')
     logger -t ztp "$MSG"
+    exit 1
 elif [ $STATUS_CODE -eq 200 ]; then
     JUNOS_CONFIG=$(grep -i content-disposition http_resp | awk -F 'filename=' '{print $2}')
     if [ -z $JUNOS_CONFIG ]; then
